@@ -1,0 +1,55 @@
+{% extends "base.html" %} {% block title %}CPF Simulation - Home{% endblock %} {% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">Welcome to CPF Simulation</h1>
+            <p class="lead mb-4">
+                Plan your financial future with our comprehensive CPF simulation tool. Calculate your CPF contributions, returns, and retirement planning with ease.
+            </p>
+            {% if current_user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        Go to Dashboard
+                    </a>
+            </div>
+            {% else %}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        Login
+                    </a>
+                <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg px-4">
+                        Register
+                    </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">CPF Contributions</h5>
+                    <p class="card-text">Calculate and understand your CPF contributions based on your salary and age.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Investment Returns</h5>
+                    <p class="card-text">Project your CPF investment returns and see how your savings grow over time.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Retirement Planning</h5>
+                    <p class="card-text">Plan your retirement with our comprehensive CPF retirement calculator.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

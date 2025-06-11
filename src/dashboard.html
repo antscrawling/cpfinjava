@@ -1,0 +1,208 @@
+{% extends "base.html" %} {% block title %}Dashboard - CPF Simulation{% endblock %} {% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-4">
+            <i class="fas fa-chart-line"></i> CPF Simulation Dashboard
+        </h2>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Welcome, {{ current_user.username }}! Configure your CPF simulation parameters below.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog"></i> Simulation Parameters
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="simulationForm" method="POST" action="{{ url_for('dashboard') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="initial_balance" class="form-label">Initial Balance</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="initial_balance" name="initial_balance" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="interest_rate" class="form-label">Interest Rate (%)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="interest_rate" name="interest_rate" step="0.01" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="monthly_contribution" class="form-label">Monthly Contribution</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="monthly_contribution" name="monthly_contribution" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="contribution_frequency" class="form-label">Contribution Frequency</label>
+                            <select class="form-select" id="contribution_frequency" name="contribution_frequency" required>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="annually">Annually</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="button" class="btn btn-secondary" id="resetForm">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Run Simulation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie"></i> Quick Stats
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Total Contributions</h6>
+                            <span class="badge bg-primary rounded-pill" id="totalContributions">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Total Interest</h6>
+                            <span class="badge bg-success rounded-pill" id="totalInterest">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Final Balance</h6>
+                            <span class="badge bg-info rounded-pill" id="finalBalance">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-export"></i> Export Options
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" id="exportCSV">
+                        <i class="fas fa-file-csv"></i> Export to CSV
+                    </button>
+                    <button class="btn btn-outline-primary" id="exportPDF">
+                        <i class="fas fa-file-pdf"></i> Export to PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line"></i> Simulation Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="simulationChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Reset form
+        document.getElementById('resetForm').addEventListener('click', function() {
+            document.getElementById('simulationForm').reset();
+        });
+
+        // Initialize chart
+        const ctx = document.getElementById('simulationChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Balance',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'CPF Balance Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Form submission
+        document.getElementById('simulationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Here you would typically make an AJAX call to your backend
+            // For now, we'll just show a success message
+            alert('Simulation started! This is a placeholder for the actual simulation.');
+        });
+
+        // Export buttons
+        document.getElementById('exportCSV').addEventListener('click', function() {
+            alert('Export to CSV functionality will be implemented here.');
+        });
+
+        document.getElementById('exportPDF').addEventListener('click', function() {
+            alert('Export to PDF functionality will be implemented here.');
+        });
+    });
+</script>
+{% endblock %}
