@@ -38,3 +38,4 @@ instance/
 # OS
 .env.bak/
 venv.bak/ 
+instance/cpf_simulation.db
